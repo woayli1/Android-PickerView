@@ -488,7 +488,7 @@ public class WheelView extends View {
                 // 根据当前角度计算出偏差系数，用以在绘制时控制文字的 水平移动 透明度 倾斜程度.
                 float offsetCoefficient = (float) Math.pow(Math.abs(angle) / 90f, 2.2);
 
-                reMeasureTextSize(contentText);
+                contentText = reMeasureTextSize(contentText);
                 //计算开始绘制的位置
                 measuredCenterContentStart(contentText);
                 measuredOutContentStart(contentText);
@@ -569,20 +569,30 @@ public class WheelView extends View {
      *
      * @param contentText item text content.
      */
-    private void reMeasureTextSize(String contentText) {
+    private String reMeasureTextSize(String contentText) {
         Rect rect = new Rect();
         paintCenterText.getTextBounds(contentText, 0, contentText.length(), rect);
         int width = rect.width();
         int size = textSize;
-        while (width > measuredWidth) {
-            size--;
+        while (width + 100 > measuredWidth) {
+            StringBuffer stringBuffer = new StringBuffer();
+            stringBuffer.append(contentText);
+            int length = stringBuffer.length();
+            if (stringBuffer.subSequence(length - 3, length).equals("...")) {
+                stringBuffer = stringBuffer.replace(length - 5, length - 4, "");
+            } else {
+                stringBuffer = stringBuffer.replace(length - 3, length, "...");
+            }
+            contentText = stringBuffer.toString();
+//            size--;
             //设置2条横线中间的文字大小
-            paintCenterText.setTextSize(size);
+//            paintCenterText.setTextSize(size);
             paintCenterText.getTextBounds(contentText, 0, contentText.length(), rect);
             width = rect.width();
         }
+        return contentText;
         //设置2条横线外面的文字大小
-        paintOuterText.setTextSize(size);
+//        paintOuterText.setTextSize(size);
     }
 
 

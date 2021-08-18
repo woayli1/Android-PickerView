@@ -1,6 +1,7 @@
 package com.bigkoo.pickerviewdemo;
 
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,20 +14,28 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bigkoo.pickerview.builder.OptionsPickerBuilder;
 import com.bigkoo.pickerview.builder.TimePickerBuilder;
 import com.bigkoo.pickerview.listener.CustomListener;
+import com.bigkoo.pickerview.listener.OnOptionsSelectListener;
 import com.bigkoo.pickerview.listener.OnTimeSelectListener;
+import com.bigkoo.pickerview.view.OptionsPickerView;
 import com.bigkoo.pickerview.view.TimePickerView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class TestFragment extends Fragment implements View.OnClickListener {
     private View mView;
     private Button btnShow;
+    private TextView btnTest;
     private TimePickerView pvTime;
     private FrameLayout mFrameLayout;
+
+    private List<String> list = new ArrayList<>();
 
     @Nullable
     @Override
@@ -40,9 +49,30 @@ public class TestFragment extends Fragment implements View.OnClickListener {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         btnShow = (Button) mView.findViewById(R.id.btn_show);
+        btnTest = (TextView) mView.findViewById(R.id.btn_test);
+
+        btnTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPickerView(getContext(),
+                        -1,
+                        list,
+                        (TextView) view,
+                        "请选择应急事件");
+            }
+        });
+
         btnShow.setOnClickListener(this);
         mFrameLayout = (FrameLayout) mView.findViewById(R.id.fragmen_fragment);
         initTimePicker();
+
+        list.add("火灾事件");
+        list.add("应急事件03");
+        list.add("火灾事件");
+        list.add("应急事件02");
+        list.add("名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字名字");
+        list.add("火灾事件");
+        list.add("案例测试");
     }
 
     private void initTimePicker() {
@@ -98,6 +128,46 @@ public class TestFragment extends Fragment implements View.OnClickListener {
                 .build();
 
         pvTime.setKeyBackCancelable(false);//系统返回键监听屏蔽掉
+    }
+
+    /**
+     * 选择器
+     *
+     * @param options       : 上次选择的标记
+     * @param options1Items : 需要单选的 集合
+     * @param view          : 触发选择控件
+     * @param title         : 标题
+     */
+    public static void showPickerView(Context context,
+                                      final int options,
+                                      final List<String> options1Items,
+                                      final TextView view,
+                                      String title) {
+        OptionsPickerView<String> pvOptions = new OptionsPickerBuilder(context,
+                new OnOptionsSelectListener() {
+                    @Override
+                    public void onOptionsSelect(int options1, int options2, int options3, View v) {
+                        if (options1Items == null || options1Items.size() == 0) {
+                            return;
+                        }
+                        String text = options1Items.get(options1);
+                        if (options == options1) {
+                            return;
+                        }
+                        view.setText(text);
+                        view.setTag(options1);
+
+                    }
+                })
+                .setTitleText(title)
+                .setTitleSize(15)
+                .setDividerColor(Color.BLACK)
+                .setTextColorCenter(Color.BLACK)
+                .setContentTextSize(13)
+                .setSelectOptions(options)
+                .build();
+        pvOptions.setPicker(options1Items);
+        pvOptions.show(view);
     }
 
     @Override
