@@ -5,51 +5,33 @@
     android:orientation="vertical">
 
     <include
-        layout="@layout/include_pickerview_topbar"
+        layout="@layout/include_pickerview_topbar_woayli1"
         android:layout_width="match_parent"
         android:layout_height="@dimen/pickerview_topbar_height" />
 
     <LinearLayout
-        android:id="@+id/timepicker"
+        android:id="@+id/optionspicker"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/white"
         android:gravity="center"
-        android:minHeight="150dp"
+        android:minHeight="180dp"
         android:orientation="horizontal">
 
         <com.woayli1.view.WheelView
-            android:id="@+id/year"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.96" />
-
-        <com.woayli1.view.WheelView
-            android:id="@+id/month"
+            android:id="@+id/options1"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
         <com.woayli1.view.WheelView
-            android:id="@+id/day"
+            android:id="@+id/options2"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
         <com.woayli1.view.WheelView
-            android:id="@+id/hour"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <com.woayli1.view.WheelView
-            android:id="@+id/min"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <com.woayli1.view.WheelView
-            android:id="@+id/second"
+            android:id="@+id/options3"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
