@@ -578,21 +578,30 @@ public class WheelView extends View {
             StringBuffer stringBuffer = new StringBuffer();
             stringBuffer.append(contentText);
             int length = stringBuffer.length();
+
+            if (length <= 5) {
+                break;
+            }
             if (stringBuffer.subSequence(length - 3, length).equals("...")) {
                 stringBuffer = stringBuffer.replace(length - 5, length - 4, "");
             } else {
                 stringBuffer = stringBuffer.replace(length - 3, length, "...");
             }
             contentText = stringBuffer.toString();
-//            size--;
-            //设置2条横线中间的文字大小
-//            paintCenterText.setTextSize(size);
             paintCenterText.getTextBounds(contentText, 0, contentText.length(), rect);
             width = rect.width();
         }
-        return contentText;
+
+        while (width > measuredWidth) {
+            size--;
+            //设置2条横线中间的文字大小
+            paintCenterText.setTextSize(size);
+            paintCenterText.getTextBounds(contentText, 0, contentText.length(), rect);
+            width = rect.width();
+        }
         //设置2条横线外面的文字大小
-//        paintOuterText.setTextSize(size);
+        paintOuterText.setTextSize(size);
+        return contentText;
     }
 
 
