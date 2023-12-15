@@ -281,6 +281,29 @@ public class TimePickerView extends BasePickerView implements View.OnClickListen
         return wheelTime.isLunarMode();
     }
 
+    /**
+     * @param isWeek 展示月日星期
+     */
+    public void setMonthDayWeek(boolean isWeek) {
+        try {
+            int year, month, day, hours, week;
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(WheelTime.dateFormat.parse(wheelTime.getTime()));
+            year = calendar.get(Calendar.YEAR);
+            month = calendar.get(Calendar.MONTH);
+            day = calendar.get(Calendar.DAY_OF_MONTH);
+            hours = calendar.get(Calendar.HOUR_OF_DAY);
+            week = calendar.get(Calendar.DAY_OF_WEEK);
+
+            wheelTime.setMonthDayWeek(isWeek);
+            wheelTime.setLabels(mPickerOptions.label_year, mPickerOptions.label_month, mPickerOptions.label_day,
+                    mPickerOptions.label_hours, mPickerOptions.label_minutes, mPickerOptions.label_seconds);
+            wheelTime.setWeekPicker(year, month, day, hours, week, mPickerOptions.beforeDay, mPickerOptions.afterDay);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public boolean isDialog() {

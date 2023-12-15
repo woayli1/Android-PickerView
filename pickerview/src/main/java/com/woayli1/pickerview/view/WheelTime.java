@@ -1,10 +1,13 @@
 package com.woayli1.pickerview.view;
 
 import android.view.View;
+import android.widget.LinearLayout;
 
 import com.woayli1.pickerview.R;
 import com.woayli1.pickerview.adapter.ArrayWheelAdapter;
 import com.woayli1.pickerview.adapter.NumericWheelAdapter;
+import com.woayli1.pickerview.adapter.StringWheelAdapter;
+import com.woayli1.pickerview.bean.DateObject;
 import com.woayli1.pickerview.listener.ISelectTimeCallback;
 import com.woayli1.pickerview.utils.ChinaDate;
 import com.woayli1.pickerview.utils.LunarCalendar;
@@ -13,6 +16,7 @@ import com.woayli1.view.WheelView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -48,7 +52,11 @@ public class WheelTime {
     private int textSize;
 
     private boolean isLunarCalendar = false;
+    private boolean isMonthDayWeek = false;
     private ISelectTimeCallback mSelectChangeCallback;
+
+    //week
+    private ArrayList<DateObject> dateList, hourList, minuteList;
 
     public WheelTime(View view, boolean[] type, int gravity, int textSize) {
         super();
@@ -66,6 +74,14 @@ public class WheelTime {
         return isLunarCalendar;
     }
 
+    public void setMonthDayWeek(boolean monthDayWeek) {
+        this.isMonthDayWeek = monthDayWeek;
+    }
+
+    public boolean isMonthDayWeek() {
+        return isMonthDayWeek;
+    }
+
     public void setPicker(int year, int month, int day) {
         this.setPicker(year, month, day, 0, 0, 0);
     }
@@ -74,9 +90,17 @@ public class WheelTime {
         if (isLunarCalendar) {
             int[] lunar = LunarCalendar.solarToLunar(year, month + 1, day);
             setLunar(lunar[0], lunar[1] - 1, lunar[2], lunar[3] == 1, h, m, s);
+        } else if (isMonthDayWeek) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, day, h, m, s);
+            setWeekPicker(year, month, day, h, calendar.get(Calendar.DAY_OF_WEEK), 30, 30);
         } else {
             setSolar(year, month, day, h, m, s);
         }
+    }
+
+    public void setWeekPicker(int year, final int month, int day, int h, int week, int before_day, int after_day) {
+        setMonthDayWeek(year, month, day, h, week, before_day, after_day);
     }
 
     /**
@@ -224,6 +248,80 @@ public class WheelTime {
         wv_hours.setVisibility(type[3] ? View.VISIBLE : View.GONE);
         wv_minutes.setVisibility(type[4] ? View.VISIBLE : View.GONE);
         wv_seconds.setVisibility(type[5] ? View.VISIBLE : View.GONE);
+        setContentTextSize();
+    }
+
+    /**
+     * @param year
+     * @param month
+     * @param day
+     * @param h
+     * @param before_day 往前展示N天
+     * @param after_day  往后展示N天
+     */
+    private void setMonthDayWeek(int year, final int month, int day, int h, int week, int before_day, int after_day) {
+        dateList = new ArrayList<>();
+        hourList = new ArrayList<>();
+        minuteList = new ArrayList<>();
+
+        for (int i = 0; i < after_day; i++) {
+            DateObject dateObject = new DateObject(year, month, day + i, week + i);
+            dateList.add(dateObject);
+        }
+
+        for (int i = before_day; i > 0; i--) {
+            DateObject dateObject = new DateObject(year, month, day - i, week - i);
+            dateList.add(dateObject);
+        }
+
+        for (int i = 0; i < 24; i++) {
+            DateObject dateObject = new DateObject(h + i, -1, true);
+            hourList.add(dateObject);
+        }
+
+        minuteList.add(new DateObject(-1, 0, false));
+        minuteList.add(new DateObject(-1, 30, false));
+
+        // 年
+        wv_year = (WheelView) view.findViewById(R.id.year);
+        // 月
+        wv_month = (WheelView) view.findViewById(R.id.month);
+        // 日
+        wv_day = (WheelView) view.findViewById(R.id.day);
+        // 时
+        wv_hours = (WheelView) view.findViewById(R.id.hour);
+        // 分
+        wv_minutes = (WheelView) view.findViewById(R.id.min);
+        // 秒
+        wv_seconds = (WheelView) view.findViewById(R.id.second);
+
+        wv_year.setVisibility(View.GONE);
+        wv_month.setVisibility(View.GONE);
+        wv_seconds.setVisibility(View.GONE);
+
+        wv_day.setVisibility(View.VISIBLE);
+        wv_hours.setVisibility(View.VISIBLE);
+        wv_minutes.setVisibility(View.VISIBLE);
+
+        LinearLayout.LayoutParams newDays_param = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        newDays_param.weight = 1;
+        wv_day.setLayoutParams(newDays_param);
+
+        LinearLayout.LayoutParams lparams_hours = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lparams_hours.weight = 1.5f;
+        wv_hours.setLayoutParams(lparams_hours);
+        wv_minutes.setLayoutParams(lparams_hours);
+
+        wv_day.setAdapter(new StringWheelAdapter(dateList));
+        wv_hours.setAdapter(new StringWheelAdapter(hourList));
+        wv_minutes.setAdapter(new StringWheelAdapter(minuteList));
+
+        wv_day.setCurrentItem(0);
+        wv_hours.setCurrentItem(0);
+
+        setChangedListener(wv_day);
+        setChangedListener(wv_hours);
+        setChangedListener(wv_minutes);
         setContentTextSize();
     }
 
@@ -649,6 +747,11 @@ public class WheelTime {
             //如果是农历 返回对应的公历时间
             return getLunarTime();
         }
+
+        if (isMonthDayWeek) {
+            return getMonthDayWeek();
+        }
+
         StringBuilder sb = new StringBuilder();
         if (currentYear == startYear) {
            /* int i = wv_month.getCurrentItem() + startMonth;
@@ -713,6 +816,25 @@ public class WheelTime {
                 .append(wv_hours.getCurrentItem()).append(":")
                 .append(wv_minutes.getCurrentItem()).append(":")
                 .append(wv_seconds.getCurrentItem());
+        return sb.toString();
+    }
+
+    /**
+     * 星期显示，返回对应时间
+     *
+     * @return
+     */
+    private String getMonthDayWeek() {
+        StringBuilder sb = new StringBuilder();
+        DateObject date_day = dateList.get(wv_day.getCurrentItem());
+        DateObject date_hour = hourList.get(wv_hours.getCurrentItem());
+        DateObject date_minutes = minuteList.get(wv_minutes.getCurrentItem());
+
+        sb.append(date_day.getYear()).append("-")
+                .append(date_day.getMonth() + 1).append("-")
+                .append(date_day.getDay()).append(" ")
+                .append(date_hour.getHour()).append(":")
+                .append(date_minutes.getMinute()).append(":00");
         return sb.toString();
     }
 

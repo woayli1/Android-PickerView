@@ -261,6 +261,15 @@ public class TimePickerBuilder {
         return this;
     }
 
+    public TimePickerBuilder setBeforeDay(int beforeDay) {
+        mPickerOptions.beforeDay = beforeDay;
+        return this;
+    }
+
+    public TimePickerBuilder setAfterDay(int afterDay) {
+        mPickerOptions.afterDay = afterDay;
+        return this;
+    }
 
     public TimePickerBuilder setLabel(String label_year, String label_month, String label_day, String label_hours, String label_mins, String label_seconds) {
         mPickerOptions.label_year = label_year;

@@ -6,5 +6,5 @@ package com.woayli1.pickerview.listener;
 
 public interface ISelectTimeCallback {
 
-    public void onTimeSelectChanged();
+    void onTimeSelectChanged();
 }

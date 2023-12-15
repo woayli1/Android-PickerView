@@ -18,6 +18,7 @@ import com.woayli1.pickerview.builder.OptionsPickerBuilder;
 import com.woayli1.pickerview.builder.TimePickerBuilder;
 import com.woayli1.pickerview.listener.CustomListener;
 import com.woayli1.pickerview.listener.OnOptionsSelectListener;
+import com.woayli1.pickerview.listener.OnTimeSelectChangeListener;
 import com.woayli1.pickerview.listener.OnTimeSelectListener;
 import com.woayli1.pickerview.view.OptionsPickerView;
 import com.woayli1.pickerview.view.TimePickerView;
@@ -28,14 +29,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class TestFragment extends Fragment implements View.OnClickListener {
+public class TestFragment extends Fragment {
     private View mView;
-    private Button btnShow;
-    private TextView btnTest;
-    private TimePickerView pvTime;
+    private Button btnShow, btnTest, btnTest2;
+    private TimePickerView pvTime, pvTest2;
     private FrameLayout mFrameLayout;
 
     private List<String> list = new ArrayList<>();
+
+    //当前时间
+    private Calendar selectedDate = Calendar.getInstance();
 
     @Nullable
     @Override
@@ -44,12 +47,23 @@ public class TestFragment extends Fragment implements View.OnClickListener {
         return mView;
     }
 
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         btnShow = (Button) mView.findViewById(R.id.btn_show);
-        btnTest = (TextView) mView.findViewById(R.id.btn_test);
+        btnTest = (Button) mView.findViewById(R.id.btn_test);
+        btnTest2 = (Button) mView.findViewById(R.id.btn_test2);
+
+        mFrameLayout = (FrameLayout) mView.findViewById(R.id.fragmen_fragment);
+
+        initData();
+
+        btnShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pvTime.show(v, false);//弹出时间选择器，传递参数过去，回调的时候则可以绑定此view
+            }
+        });
 
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,10 +76,18 @@ public class TestFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        btnShow.setOnClickListener(this);
-        mFrameLayout = (FrameLayout) mView.findViewById(R.id.fragmen_fragment);
-        initTimePicker();
+        btnTest2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pvTest2.show(view);
+            }
+        });
 
+    }
+
+    private void initData() {
+        initTimePicker();
+        initBtnTest2PickerView();
         list.add("火灾事件");
         list.add("应急事件03");
         list.add("火灾事件");
@@ -130,6 +152,11 @@ public class TestFragment extends Fragment implements View.OnClickListener {
         pvTime.setKeyBackCancelable(false);//系统返回键监听屏蔽掉
     }
 
+    private String getTime(Date date) {//可根据需要自行截取数据显示
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return format.format(date);
+    }
+
     /**
      * 选择器
      *
@@ -170,13 +197,91 @@ public class TestFragment extends Fragment implements View.OnClickListener {
         pvOptions.show(view);
     }
 
-    @Override
-    public void onClick(View v) {
-        pvTime.show(v, false);//弹出时间选择器，传递参数过去，回调的时候则可以绑定此view
+    public void initBtnTest2PickerView() {
+        //控制时间范围(如果不设置范围，则使用默认时间1900-2100年，此段代码可注释)
+        //因为系统Calendar的月份是从0-11的,所以如果是调用Calendar的set方法来设置时间,月份的范围也要是从0-11
+
+        Calendar startDate = Calendar.getInstance();
+        startDate.set(2020, 0, 23);
+
+        Calendar endDate = Calendar.getInstance();
+        endDate.set(2040, 11, 28);
+        //时间选择器
+        pvTest2 = new TimePickerBuilder(getActivity(), new OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {//选中事件回调
+                // 这里回调过来的v,就是show()方法里面所添加的 View 参数，如果show的时候没有添加参数，v则为null
+                /*btn_Time.setText(getTime(date));*/
+                Button btn = (Button) v;
+                btn.setText(getTime(date));
+            }
+        })
+                .setLayoutRes(R.layout.pickerview_test2, new CustomListener() {
+
+                    @Override
+                    public void customLayout(View v) {
+                        TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
+                        TextView tvClear = (TextView) v.findViewById(R.id.tv_clear);
+                        TextView tvCancel = (TextView) v.findViewById(R.id.tv_cancel);
+                        TextView tvConfirm = (TextView) v.findViewById(R.id.tv_confirm);
+                        ImageView ivClose = (ImageView) v.findViewById(R.id.iv_close);
+
+                        tvTitle.setText(getTimeNoSS(selectedDate.getTime()));
+
+                        tvClear.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                pvTest2.setDate(selectedDate);
+                                pvTest2.setTitleText(getTimeNoSS(selectedDate.getTime()));
+                            }
+                        });
+
+                        tvCancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pvTest2.dismiss();
+                            }
+                        });
+                        ivClose.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pvTest2.dismiss();
+                            }
+                        });
+
+                        tvConfirm.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pvTest2.returnData();
+                            }
+                        });
+                    }
+                })
+                .setType(new boolean[]{false, false, true, true, true, false})
+                .setLabel("", "", "", "", "", "") //设置空字符串以隐藏单位提示   hide label
+                .setDividerColor(Color.parseColor("#aaaaaa"))
+                .setContentTextSize(18)
+                .setItemVisibleCount(7)
+                .setDate(selectedDate)
+                .isCyclic(true)
+                .setLineSpacingMultiplier(3f)
+                .setAfterDay(30)
+                .setBeforeDay(30)
+                .setRangDate(startDate, endDate)
+                .setOutSideCancelable(false)
+                .setTimeSelectChangeListener(new OnTimeSelectChangeListener() {
+                    @Override
+                    public void onTimeSelectChanged(Date date) {
+                        pvTest2.setTitleText(getTimeNoSS(date));
+                    }
+                })
+                .build();
+
+        pvTest2.setMonthDayWeek(true);
     }
 
-    private String getTime(Date date) {//可根据需要自行截取数据显示
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private String getTimeNoSS(Date date) {//可根据需要自行截取数据显示
+        SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
         return format.format(date);
     }
 }
